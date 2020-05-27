@@ -1,5 +1,6 @@
 from pyspark import SparkContext
 from pyspark.sql import SparkSession, Row
+from pyspark.ml.recommendation import ALS
 
 sc = SparkContext()
 txt = sc.textFile('file:///home/hit.txt')

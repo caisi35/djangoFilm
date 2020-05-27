@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'film.apps.FilmConfig',
     'home.apps.HomeConfig',
     'authorize.apps.AuthorizeConfig',
 ]

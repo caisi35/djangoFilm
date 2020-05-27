@@ -15,17 +15,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+
 from django.conf.urls import url
-from authorize.views import *
+from authorize.views import login,logout,register,getBookInfo,getRecommendBook,index
 from home.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r'^$', index.site.urls),
-    url(r'^api/login/', login, name='login'),
+
+    url(r'', index, name='index'),
+    url(r'^/login/', login, name='login'),
     url(r'^api/logout/', logout,name='logout'),
     url(r'^api/register/', register, name='register'),
     url(r'^api/getbookinfo$', getBookInfo, name='getbookinfo'),
     url(r'^api/bookpush$', getRecommendBook, name='getrecommendbook'),
+
     url(r'^api/upload$', importBookData, name='importBookData'),
 ]
