@@ -1,12 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-user:{{ user }}
-userid:{{ userid }}
-test:{{ test }}
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}主页{% endblock %}
+{% load static %}
+{% block link_css %}
+    <link rel="stylesheet" href="{% static '/css/auth/index.css' %}">
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            {% for foo in book_list %}
+                <div class="col-sm-6 col-md-3">
+                    <div class="thumbnail" id="{{ foo.id }}"
+                         onclick="hits_book(book_id={{ foo.id }}, user_id={{ request.session.userid }})">
+                        <a><img src="{{ foo.cover }}" alt="图书封面"></a>
+                        <div class="caption">
+                            <a><h3 class="book_name">书名：{{ foo.name }}</h3></a>
+                            <p>介绍：{{ foo.introduction }}</p>
+                            <p>出版社：{{ foo.publish }}</p>
+                            <p>价格：{{ foo.price }}</p>
+                            <p>评分：{{ foo.rating }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block script_js %}
+    {% csrf_token %}
+    <script>var hits_route ="{% url 'hits_book' %}"</script>
+    <script src="{% static 'js/index.js' %}"></script>
+{% endblock %}

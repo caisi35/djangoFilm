@@ -1,10 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}注册{% endblock %}
+
+{% load static %}
+{% block link_css %}
+    <link rel="stylesheet" href="{% static '/css/auth/signin.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <form class="form-horizontal center-block register-form" id="myform" method="post">
+            {% csrf_token %}
+            <div class="form-group ">
+                <label class="col-sm-3 control-label"></label>
+                <div class="col-sm-9">
+                    <h2 class="form-signin-heading col-sm-10 text-center">注册</h2>
+                </div>
+            </div>
+            <div class="form-group ">
+                <label for="inputEmail3" class="col-sm-3 control-label">邮箱地址</label>
+                <div class="col-sm-9">
+                    <input type="email" class="form-control " name="email" id="inputEmail3" placeholder="Email" required
+                           autofocus>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputname3" class="col-sm-3 control-label">昵称</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="inputname3" placeholder="昵称" name="name" required
+                           maxlength="50">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputpassword3" class="col-sm-3 control-label">密码</label>
+                <div class="col-sm-9">
+                    <input type="password" class="form-control" id="inputpassword" placeholder="密码" name="password"
+                           required minlength="6" maxlength="6">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputpassword23" class="col-sm-3 control-label">确认密码</label>
+                <div class="col-sm-9">
+                    <input type="password" class="form-control" onblur="confirm_password()" id="inputpassword2" placeholder="确认密码" name="password2"
+                           required minlength="6" maxlength="6">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label"></label>
+                <div class="col-sm-9">
+                    <button class="btn btn-lg btn-primary btn-block" type="submit" >注 册</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-10 alert_info">
+                    {% if msg %}
+                         <label class="text-center control-label col-sm-12" style="color: red;">{{ msg }}</label>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+
+    </div> <!-- /container -->
+
+
+{% endblock %}
+
+{% block page %}
+{% endblock %}
+
+{% block script_js %}
+
+<script>var register ="{% url 'register' %}"</script>
+<script>var login_route ="{% url 'login' %}"</script>
+<script>var url_regit_sign ="{% url 'register_conf_email' %}"</script>
+<script src="{% static '/js/register_login.js' %}"></script>
+{% endblock %}

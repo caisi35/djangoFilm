@@ -1,10 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}登录{% endblock %}
+{% load static %}
+{% block link_css %}
+    <link rel="stylesheet" href="{% static '/css/auth/signin.css' %}">
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <form class="form-signin" method="post">
+            {% csrf_token %}
+            <h2 class="form-signin-heading text-center">登录</h2>
+            <div class="form-group">
+                <label for="inputEmail" class="sr-only">电子邮箱</label>
+                <input type="email" id="inputEmail" class="form-control" name="email" placeholder="Email address"
+                       required autofocus>
+            </div>
+            <div class="form-group">
+
+                <label for="inputPassword" class="sr-only">密码</label>
+                <input type="password" id="inputPassword" maxlength="6" class="form-control" placeholder="Password"
+                       name="password" required>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="remember-me">记住密码
+                </label>
+            </div>
+            <a class="btn btn-lg btn-primary btn-block" id="submit_login">登录</a>
+        </form>
+    </div> <!-- /container -->
+{% endblock %}
+
+{% block page %}
+{% endblock %}
+
+{% block script_js %}
+    <script>var login_route = "{% url 'login' %}"</script>
+    <script>var index_route = "{% url 'index' %}"</script>
+    <script src="{% static '/js/register_login.js' %}"></script>
+{% endblock %}

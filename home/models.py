@@ -3,21 +3,23 @@ from django.db import models
 # Create your models here.
 
 
-class user(models.Model):
-    name = models.CharField(max_length=50, default='')
-    email = models.EmailField()
-    password = models.CharField(max_length=6, default='admin')
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "用户管理"
-
-        verbose_name_plural = "用户管理"
+# class user(models.Model):
+#     id = models.IntegerField(primary_key=True)
+#     name = models.CharField(max_length=50, default='')
+#     email = models.EmailField()
+#     password = models.CharField(max_length=6, default='admin')
+#
+#     def __str__(self):
+#         return self.name
+#
+#     class Meta:
+#         verbose_name = "用户管理"
+#
+#         verbose_name_plural = "用户管理"
 
 
 class hits(models.Model):
+    id = models.IntegerField(primary_key=True)
     userid = models.IntegerField(default=0)
     bookid = models.IntegerField(default=0)
     hitnum = models.IntegerField(default=0)
@@ -31,6 +33,7 @@ class hits(models.Model):
 
 
 class book(models.Model):
+    id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=50, blank= False, verbose_name='书名' , default='')
     price = models.FloatField(blank=False, verbose_name="价格", default=0)
     cover = models.ImageField(verbose_name="封面", upload_to='upload', default='img/default.png')

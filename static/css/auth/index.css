@@ -1,0 +1,15 @@
+.thumbnail {
+    height: 300px;
+}
+
+/*超出部分省略号*/
+/*https://blog.csdn.net/zhumengzj/article/details/80801556*/
+.book_name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.thumbnail{
+    border: 7px solid #eee;
+}
