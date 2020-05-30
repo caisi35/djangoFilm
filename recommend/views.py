@@ -15,4 +15,4 @@ def getRecommendBook(request):
         bookid = bk.split(',')[-1]
         bk_entry = book.objects.get(id=bookid)
         bookset.append(bk_entry)
-    return render(request, 'auth/recommend.html', locals())
+    return render(request, 'auth/../templates/recommend.html', locals())

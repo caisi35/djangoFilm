@@ -1,7 +1,16 @@
-from django.conf.urls import url
-from home.views import importBookData, hits_book
+from django.urls import path
+from . import views
+from home import views
 
 urlpatterns = [
-    url(r'^upload/$', importBookData, name='importBookData'),
-    url(r'^hits_book/', hits_book, name='hits_book'),
+    path('', views.index, name='index'),
+
+    path('upload/', views.importBookData, name='importBookData'),
+    path('hits_book/', views.hits_book, name='hits_book'),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('register/', views.register, name='register'),
+    path('register_conf_email/', views.register_conf_email, name='register_conf_email'),
+    path('getbookinfo/<int:id>/', views.getBookInfo, name='getbookinfo'),
+    path('bookpush/', views.getRecommendBook, name='getrecommendbook'),
 ]
