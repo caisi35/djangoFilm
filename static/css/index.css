@@ -13,3 +13,17 @@
 .thumbnail{
     border: 7px solid #eee;
 }
+
+.thumbnail a img{
+    width: 140px;
+    height: 140px;
+}
+
+.rating{
+    margin-left: 30px;
+}
+
+.rat{
+    font-size: 20px;
+    color: red;
+}

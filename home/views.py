@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import os
 from djangoFilm import settings
 from home.models import *
 from django.http import HttpResponse
 import csv
 from django.utils.deprecation import MiddlewareMixin
-from utils import tools
+
 
 # 将上传的文件保存到本地
 def handle_upload_file(name, file):
@@ -65,42 +66,64 @@ def importBookData(request):
     return render(request, 'upload.html')
 
 
-# 点击量
-def hits_book(request):
-    if request.is_ajax():
-        book_id = request.POST.get('book_id')
-        user_id =request.POST.get('user_id')
+def split_page(object_list, request, per_page=20):
+    """
+    版权声明：本文为CSDN博主「Xyns」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+    原文链接：https://blog.csdn.net/xinyan233/article/details/80236557
+    :param object_list: 模型对象列表
+    :param request:
+    :param per_page: 一页的数量
+    :return: 字典对象
+    """
+    paginator = Paginator(object_list, per_page)
+    # 取出当前需要展示的页码, 默认为1
+    page_num = request.GET.get('page', default='1')
+    # 根据页码从分页器中取出对应页的数据
+    try:
+        page = paginator.page(page_num)
+    except PageNotAnInteger as e:
+        # 不是整数返回第一页数据
+        page = paginator.page('1')
+        page_num = 1
+    except EmptyPage as e:
+        # 当参数页码大于或小于页码范围时,会触发该异常
+        print('EmptyPage:{}'.format(e))
+        if int(page_num) > paginator.num_pages:
+            # 大于 获取最后一页数据返回
+            page = paginator.page(paginator.num_pages)
+        else:
+            # 小于 获取第一页
+            page = paginator.page(1)
 
-        try:
-            hit = hits.objects.get(bookid=book_id, userid=user_id)
-            hit.hitnum += 1
-            hit.save()
-            data = {'result': True}
-        except Exception as e:
-            hit = hits()
-            hit.bookid = book_id
-            hit.hitnum = 1
-            hit.userid = user_id
-            hit.save()
-            data = {'result': False}
-            print('=====================hits_book=====================', e)
-        return JsonResponse(data)
+    # 这部分是为了再有大量数据时，仍然保证所显示的页码数量不超过10，
+    page_num = int(page_num)
+    if page_num < 6:
+        if paginator.num_pages <= 10:
+            dis_range = range(1, paginator.num_pages + 1)
+        else:
+            dis_range = range(1, 11)
+    elif (page_num >= 6) and (page_num <= paginator.num_pages - 5):
+        dis_range = range(page_num - 5, page_num + 5)
+    else:
+        dis_range = range(paginator.num_pages - 9, paginator.num_pages + 1)
 
-
-# 路由url白名单
-WHITESITE = []
+    data = {'page': page, 'paginator': paginator, 'dis_range': dis_range}
+    return data
 
 
 # 主页
 def index(request):
-    book_list = book.objects.all()
-    user = request.session.get('user', None)
-    userid = request.session.get('userid', None)
-
-    # locals()将所有变量传到templates
-    # print(type(book_list))
-    # <class 'django.db.models.query.QuerySet'>
-    return render(request, 'index.html', locals())
+    """
+    # 分页： https://www.jianshu.com/p/332406309476
+    # 加减： https://blog.csdn.net/qq_33472765/article/details/81174919
+    :param request:
+    :return:
+    """
+    if request.method == "GET":
+        book_list = book.objects.all()
+        data = split_page(book_list, request)
+        # locals()将所有变量传到templates
+        return render(request, 'index.html', data)
 
 
 # 用户登录
@@ -109,17 +132,18 @@ def login(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         userEntry = user.objects.filter(email=email, password=password)
-        print(email, password, '=========================')
         if userEntry.exists():
             request.session['name'] = userEntry[0].name
             request.session['userid'] = userEntry[0].id
-            print('True')
             data = {'code': 1}
         else:
-            print('False')
             data = {'code': 0}
         return JsonResponse(data)
     return render(request, 'login.html')
+
+
+# 路由url白名单
+WHITESITE = []
 
 
 # https://blog.csdn.net/piduocheng0577/article/details/105031958
@@ -146,10 +170,9 @@ def register(request):
         name = request.POST.get('name')
         password = request.POST.get('password')
         password2 = request.POST.get('password2')
-
         # 确认密码和没有相同的邮箱
         if password == password2 and not user.objects.filter(email=email).exists() and password2 is not '' and len(
-                password2)==6:
+                password2) == 6:
             userEntry = user(email=email, name=name, password=password)
             userEntry.save()
             return redirect('login')
@@ -175,40 +198,29 @@ def register_conf_email(request):
 
 # 获取图书详情
 def getBookInfo(request, id):
-    bk = book.objects.get(id=id)
     userid = request.session.get('userid', None)
-    currentuser = user.objects.get(id=userid)
-    # 1
-    # id: 1
-    # 啊啊啊
-    # print(currentuser)
-    try:
-        hit = hits.objects.get(userid=currentuser.id, bookid=id)
-        hit.hitnum += 1
-        hit.save()
-    except:
-        hit = hits()
-        hit.bookid = id
-        hit.hitnum = 1
-        hit.userid = currentuser.id
-        hit.save()
-    data = str(currentuser.id) + ',' + str(id) + ',' + str(1)
-    return render(request, 'detail.html', locals())
-
-
-import redis
-
-pool = redis.ConnectionPool(host='localhost', port=6379)
-redis_client = redis.Redis(connection_pool=pool)
-
-
-def getRecommendBook(request):
-    userid = request.GET.get('userid')
-    recommendbook = redis_client.get(int(userid))
-    booklist = str(recommendbook).split('|')
-    bookset = []
-    for bk in booklist[:-1]:
-        bookid = bk.split(',')[-1]
-        bk_entry = book.objects.get(id=bookid)
-        bookset.append(bk_entry)
-    return render(request, 'recommend.html', locals())
+    # 如果已经登录了
+    if userid:
+        bk = book.objects.get(id=id)
+        currentuser = user.objects.get(id=userid)
+        try:
+            hit = hits.objects.get(userid=currentuser.id, bookid=id)
+            hit.hitnum += 1
+            hit.save()
+        except:
+            hit = hits()
+            hit.bookid = id
+            hit.hitnum = 1
+            hit.userid = currentuser.id
+            hit.save()
+        # user_id, book_id, hit_num
+        data = str(currentuser.id) + ',' + str(id) + ',' + str(1)
+        data2 = [str(currentuser.id), str(id), str(1)]
+        print(data2)
+        with open(r'/home/caisi/PycharmProjects/djangoFilm/recommend/data/hit.csv', 'a') as f:
+            r = csv.writer(f)
+            r.writerow(data2)
+        return render(request, 'detail.html', locals())
+    # 没有登录就去登录
+    else:
+        return redirect('login')

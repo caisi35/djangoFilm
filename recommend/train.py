@@ -1,20 +1,29 @@
 from pyspark import SparkContext
-from pyspark.sql import SparkSession, Row
-from pyspark.ml.recommendation import ALS
-
-sc = SparkContext()
-txt = sc.textFile('file:///home/hit.txt')
-ratingsRDD = txt.flatMap(lambda x:x.split()).map(lambda x:x.split(','))
-sqlContext = SparkSession.builder.getOrCreate()
-user_row = ratingsRDD.map(lambda x:Row(userid=int(x=[0]),bookid=int(x[1]),hitnum=int(x[2])))
-user_df = sqlContext.createDataFrame(user_row)
-user_df.registerTempTable('test')
-datatable = sqlContext.sql('select userid, bookid, sum(hitnum) as hitnum from test group by userid, bookid')
-bookrdd = datatable.rdd.map(lambda x:(x.userid, x.bookid, x.hitnum))
-model = ALS.trainImplicit(bookrdd,10,10,0.01)
+from pyspark.sql import SparkSession, SQLContext
+from pyspark.mllib.recommendation import ALS
 import os
 import shutil
+
+sc = SparkContext()
+sql_content = SQLContext(sc)
+read = sql_content.read
+df = read.schema('user_id Int, book_id Int, hit_num Int').csv(path='./data/hit.csv')
+df.registerTempTable('hit')
+sqlContext = SparkSession.builder.getOrCreate()
+data = sqlContext.sql('select user_id,book_id,sum(hit_num) as hits from hit group by user_id, book_id')
+# data.show()
+# +-------+-------+-------+
+# |user_id|book_id|hit_num|
+# +-------+-------+-------+
+# |      1|      1|      1|
+# |      1|      4|      1|
+# +-------+-------+-------+
+
+bookrdd = data.rdd.map(lambda x: (x.user_id, x.book_id, x.hits))
+
+model = ALS.trainImplicit(bookrdd, 10, 10, 0.01)
+
+
 if os.path.exists('recommendModel'):
     shutil.rmtree('recommemdModel')
 model.save(sc, 'recommemdModel')
-

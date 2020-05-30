@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}推荐{% endblock %}
+{% load static %}
+{% block link_css %}
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container">
+        <div class="row">
+            {% for foo in bookset %}
+                <div class="col-sm-6 col-md-3">
+                    <div class="thumbnail">
+                        <a href="{% url  'getbookinfo' id=foo.id %}"><img src="{{ foo.cover }}" alt="图书封面"></a>
+                        <div class="caption">
+                            <a href="{% url  'getbookinfo' id=foo.id %}"><h3 class="book_name">{{ foo.name }}</h3>
+                            </a>
+{#                            <p>介绍：{{ foo.introduction }}</p>#}
+                            <p>出版社：{{ foo.publish }}</p>
+                            <p><span>价格：{{ foo.price }}</span>
+                                <span class="rating">评分：<span class="rat">{{ foo.rating }}</span></span></p>
 
-</body>
-</html>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block script_js %}
+    {% csrf_token %}
+    <script>var login_route = "{% url 'login' %}"</script>
+    {#    <script>var hits_route = "{% url 'hits_book' %}"</script>#}
+    <script src="{% static 'js/index.js' %}"></script>
+{% endblock %}

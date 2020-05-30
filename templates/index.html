@@ -8,21 +8,18 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            {% for foo in book_list %}
+            {% for foo in page %}
                 <div class="col-sm-6 col-md-3">
-                    <div class="thumbnail" id="{{ foo.id }}"
-                         onclick="hits_book(book_id={{ foo.id }},
-                                 {% if request.session.userid %}
-                                     user_id={{ request.session.userid }}
-                                 {% endif %})">
+                    <div class="thumbnail">
                         <a href="{% url  'getbookinfo' id=foo.id %}"><img src="{{ foo.cover }}" alt="图书封面"></a>
                         <div class="caption">
-                            <a href="{% url  'getbookinfo' id=foo.id %}"><h3 class="book_name">书名：{{ foo.name }}</h3>
+                            <a href="{% url  'getbookinfo' id=foo.id %}"><h3 class="book_name">{{ foo.name }}</h3>
                             </a>
-                            <p>介绍：{{ foo.introduction }}</p>
+{#                            <p>介绍：{{ foo.introduction }}</p>#}
                             <p>出版社：{{ foo.publish }}</p>
-                            <p>价格：{{ foo.price }}</p>
-                            <p>评分：{{ foo.rating }}</p>
+                            <p><span>价格：{{ foo.price }}</span>
+                                <span class="rating">评分：<span class="rat">{{ foo.rating }}</span></span></p>
+
                         </div>
                     </div>
                 </div>
@@ -31,9 +28,46 @@
     </div>
 {% endblock %}
 
+{% block page %}
+    <div class="text-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-lg" id="paging">
+                <li><a href="?page=1">首页</a></li>
+                <!--上一页-->
+                <li class="{% if not page.has_previous %}disabled{% endif %}">
+                    {% if page.has_previous %}
+                        <a href="{% url 'index' %}?page={{ page.previous_page_number }}" aria-label="Previous">
+                    {% endif %}
+                    <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                <!--页码-->
+                <!--这里展示页码使用传递过来的dis_range -->
+                {% for num in dis_range %}
+                    <li class="{% if num == page.number %}active{% else %}{% endif %}">
+                        <a href="{% url 'index' %}?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+
+                <!--下一页-->
+                <li class="{% if not page.has_next %}disabled{% endif %}">
+                    {% if page.has_next %}
+                        <a href="{% url 'index' %}?page={{ page.next_page_number }}" aria-label="Next">
+                    {% endif %}
+                    <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+
+                <li><a href="?page={{ paginator.num_pages }}">尾页</a></li>
+            </ul>
+        </nav>
+    </div>
+{% endblock %}
+
 {% block script_js %}
     {% csrf_token %}
     <script>var login_route = "{% url 'login' %}"</script>
-    <script>var hits_route = "{% url 'hits_book' %}"</script>
+    {#    <script>var hits_route = "{% url 'hits_book' %}"</script>#}
     <script src="{% static 'js/index.js' %}"></script>
 {% endblock %}

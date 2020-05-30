@@ -1,11 +1,35 @@
 {% extends 'base.html' %}
 
-{% block title %}详情{% endblock %}
+{% block title %}图书详情{% endblock %}
+
+{% block link_css %}
+    {% load static %}
+    <link href="{% static 'css/detial.css' %}" type="text/css" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
 
-    <div>
-        {{ data }}
+    <div class="container">
+        <div class="content row">
+            <div class="img col-md-4">
+                <a href="{{ bk.url }}">
+                    <img src="{% if  'default.png' in bk.cover  %}
+                    {{ bk.cover }}
+                    {% else %}
+                    {% static 'img/loading.gif' %}
+                    {% endif %}" alt="封面" class="img-thumbnail">
+                </a>
+            </div>
+            <div class="info col-md-8">
+                <a href="{{ bk.url }}">
+                    <h2>{{ bk.name }}</h2>
+                </a>
+                <p>介绍：{{ bk.introduction }}</p>
+                <p>出版社：{{ bk.publish }}</p>
+                <p>价格：{{ bk.price }}</p>
+                <p>评分：<strong>{{ bk.rating }}</strong></p>
+            </div>
+        </div>
     </div>
 
 {% endblock %}
