@@ -52,21 +52,23 @@ def insertToSQL(fileName):
 
 
 # 上传文件
-@login_required
+
 def importBookData(request):
-    if request.method == 'POST':
-        file = request.FILES.get('file', None)
-        if not file:
-            return HttpResponse('None File uploads ! ')
-        else:
+    if request.session.get('userid'):
+        if request.method == 'POST':
+            file = request.FILES.get('file', None)
+            if not file:
+                return HttpResponse('None File uploads ! ')
+            else:
 
-            name = file.name
-            # name GoodBooks.csv file type <class 'django.core.files.uploadedfile.TemporaryUploadedFile'>
-            # print('name',name, 'file type', type(file))
-            handle_upload_file(name, file)
-            return HttpResponse('success')
-    return render(request, 'upload.html')
-
+                name = file.name
+                # name GoodBooks.csv file type <class 'django.core.files.uploadedfile.TemporaryUploadedFile'>
+                # print('name',name, 'file type', type(file))
+                handle_upload_file(name, file)
+                return HttpResponse('success')
+        return render(request, 'upload.html')
+    else:
+        return redirect('login')
 
 
 def split_page(object_list, request, per_page=20):
@@ -159,7 +161,7 @@ def login(request):
 
 # 用户退出登录
 def logout(request):
-    request.session.flush()
+    request.session.clear()
     return redirect('index')
 
 
@@ -197,30 +199,31 @@ def register_conf_email(request):
 
 
 # 获取图书详情
-@login_required()
 def getBookInfo(request, id):
-    userid = request.session.get('userid')
-    bk = book.objects.get(id=id)
-    currentuser = user.objects.get(id=userid)
-    try:
-        hit = hits.objects.get(userid=currentuser.id, bookid=id)
-        hit.hitnum += 1
-        hit.save()
-    except:
-        hit = hits()
-        hit.bookid = id
-        hit.hitnum = 1
-        hit.userid = currentuser.id
-        hit.save()
-    # user_id, book_id, hit_num
-    data = str(currentuser.id) + ',' + str(id) + ',' + str(1)
-    data2 = [str(currentuser.id), str(id), str(1)]
-    print(data2)
-    with open(r'/home/caisi/PycharmProjects/djangoFilm/recommend/data/hit.csv', 'a') as f:
-        r = csv.writer(f)
-        r.writerow(data2)
-    return render(request, 'detail.html', locals())
-
+    if request.session.get('userid'):
+        userid = request.session.get('userid')
+        bk = book.objects.get(id=id)
+        currentuser = user.objects.get(id=userid)
+        try:
+            hit = hits.objects.get(userid=currentuser.id, bookid=id)
+            hit.hitnum += 1
+            hit.save()
+        except:
+            hit = hits()
+            hit.bookid = id
+            hit.hitnum = 1
+            hit.userid = currentuser.id
+            hit.save()
+        # user_id, book_id, hit_num
+        data = str(currentuser.id) + ',' + str(id) + ',' + str(1)
+        data2 = [str(currentuser.id), str(id), str(1)]
+        print(data2)
+        with open(r'/home/caisi/PycharmProjects/djangoFilm/recommend/data/hit.csv', 'a') as f:
+            r = csv.writer(f)
+            r.writerow(data2)
+        return render(request, 'detail.html', locals())
+    else:
+        return redirect('login')
 
 # 搜索视图
 def search(request):

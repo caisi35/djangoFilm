@@ -128,3 +128,7 @@ STATICFILES_DIRS = (
 # 限制非登录用户访问url
 # https://www.cnblogs.com/breezey/p/6715641.html
 LOGIN_URL = 'login'
+
+# session 过期时间
+SESSION_COOKIE_AGE=60*30
+
