@@ -36,9 +36,9 @@
                     <li><a href="{% url 'getrecommendbook' %}">图书推荐</a></li>
                 </ul>
             <div class="col-md-offset-4">
-                <form class="navbar-form navbar-left">
+                <form class="navbar-form navbar-left" action="{% url 'search' %}" method="get">
                     <div class="form-group">
-                        <input type="text" class="form-control" placeholder="书名、作者……">
+                        <input type="text" class="form-control" name="kw" placeholder="书名、出版社……">
                     </div>
                     <button type="submit" class="btn btn-default">搜 索</button>
                 </form>

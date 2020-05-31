@@ -124,3 +124,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(os.path.join(BASE_DIR, 'static')),
 )
+
+# 限制非登录用户访问url
+# https://www.cnblogs.com/breezey/p/6715641.html
+LOGIN_URL = 'login'

@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-import os
+import os, csv
 from djangoFilm import settings
 from home.models import *
-from django.http import HttpResponse
-import csv
-from django.utils.deprecation import MiddlewareMixin
+from recommend.recom import getRecommendByUserId
+from django.contrib.auth.decorators import login_required
+import threading
+from django.db.models import Q
 
 
 # 将上传的文件保存到本地
@@ -51,6 +52,7 @@ def insertToSQL(fileName):
 
 
 # 上传文件
+@login_required
 def importBookData(request):
     if request.method == 'POST':
         file = request.FILES.get('file', None)
@@ -64,6 +66,7 @@ def importBookData(request):
             handle_upload_file(name, file)
             return HttpResponse('success')
     return render(request, 'upload.html')
+
 
 
 def split_page(object_list, request, per_page=20):
@@ -120,10 +123,16 @@ def index(request):
     :return:
     """
     if request.method == "GET":
-        book_list = book.objects.all()
+        book_list = book.objects.order_by('rating').all()
         data = split_page(book_list, request)
         # locals()将所有变量传到templates
         return render(request, 'index.html', data)
+
+
+# 启动预测推荐
+def run_recommend(userid, rec_num=4):
+    print('=================run_recommend===========================', userid)
+    getRecommendByUserId(userid, rec_num)
 
 
 # 用户登录
@@ -136,25 +145,16 @@ def login(request):
             request.session['name'] = userEntry[0].name
             request.session['userid'] = userEntry[0].id
             data = {'code': 1}
+
+            # 登录成功后，启用后台线程进行训练、预测
+            t = threading.Thread(target=run_recommend, args=(userEntry[0].id, ), daemon=True)
+            t.start()
+
+
         else:
             data = {'code': 0}
         return JsonResponse(data)
     return render(request, 'login.html')
-
-
-# 路由url白名单
-WHITESITE = []
-
-
-# https://blog.csdn.net/piduocheng0577/article/details/105031958
-class AuthMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-        if request.path_info in WHITESITE or str(request.path_info).startswith('/admin'):
-            print(request.path_info)
-        elif request.session.get('user', None):
-            print(request.path_info)
-        else:
-            return redirect('login')
 
 
 # 用户退出登录
@@ -197,30 +197,47 @@ def register_conf_email(request):
 
 
 # 获取图书详情
+@login_required()
 def getBookInfo(request, id):
-    userid = request.session.get('userid', None)
-    # 如果已经登录了
-    if userid:
-        bk = book.objects.get(id=id)
-        currentuser = user.objects.get(id=userid)
-        try:
-            hit = hits.objects.get(userid=currentuser.id, bookid=id)
-            hit.hitnum += 1
-            hit.save()
-        except:
-            hit = hits()
-            hit.bookid = id
-            hit.hitnum = 1
-            hit.userid = currentuser.id
-            hit.save()
-        # user_id, book_id, hit_num
-        data = str(currentuser.id) + ',' + str(id) + ',' + str(1)
-        data2 = [str(currentuser.id), str(id), str(1)]
-        print(data2)
-        with open(r'/home/caisi/PycharmProjects/djangoFilm/recommend/data/hit.csv', 'a') as f:
-            r = csv.writer(f)
-            r.writerow(data2)
-        return render(request, 'detail.html', locals())
-    # 没有登录就去登录
+    userid = request.session.get('userid')
+    bk = book.objects.get(id=id)
+    currentuser = user.objects.get(id=userid)
+    try:
+        hit = hits.objects.get(userid=currentuser.id, bookid=id)
+        hit.hitnum += 1
+        hit.save()
+    except:
+        hit = hits()
+        hit.bookid = id
+        hit.hitnum = 1
+        hit.userid = currentuser.id
+        hit.save()
+    # user_id, book_id, hit_num
+    data = str(currentuser.id) + ',' + str(id) + ',' + str(1)
+    data2 = [str(currentuser.id), str(id), str(1)]
+    print(data2)
+    with open(r'/home/caisi/PycharmProjects/djangoFilm/recommend/data/hit.csv', 'a') as f:
+        r = csv.writer(f)
+        r.writerow(data2)
+    return render(request, 'detail.html', locals())
+
+
+# 搜索视图
+def search(request):
+    kw = request.GET.get('kw')
+    if kw:
+        book_list = book.objects.filter(Q(name__icontains=kw) | Q(publish__icontains=kw))
+        data = split_page(book_list, request)
+        data['kw'] = kw
+        # locals()将所有变量传到templates
+        return render(request, 'search.html', data)
     else:
-        return redirect('login')
+        kw = ''
+        book_list = book.objects.order_by('-price').all()[0:40]
+        data = split_page(book_list, request)
+        data['kw'] = kw
+        # locals()将所有变量传到templates
+        return render(request, 'search.html', data)
+
+
+
