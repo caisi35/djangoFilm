@@ -33,7 +33,8 @@ get foo
 `python mamage.py createsuperuser`
 
 ## 注册登录，导入数据
-在主页中的‘上传文件’中选择项目的uploads文件夹下的csv文件进行图书数据的导入  
+在主页中的‘上传文件’中选择项目的uploads文件夹下的csv文件进行图书数据的导入
+数据来源与`https://github.com/moverzp/GoodBooks`
 
 ## 最后
 自己试着在别的电脑下载运行，推荐模块存在问题，可能是spark版本的原因或是路径问题
