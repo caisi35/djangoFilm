@@ -18,7 +18,7 @@ cd redis-5.0.4
 make
 ```  
 启动服务
-`src/redis-server`
+`src/redis-server`   
 运行src文件夹下面的redis-cli，启动redis的命令行
 ```
 src/redis-cli
